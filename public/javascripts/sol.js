@@ -18,7 +18,6 @@ const audios = files.map(file => {
     audio.crossOrigin = "anonymous";
     audio.type = "audio/mpeg";
     audio.src = file;
-
     return audio;
 });
 var ctx = new AudioContext();
