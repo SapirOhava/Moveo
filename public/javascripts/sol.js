@@ -1,4 +1,3 @@
-const s3 = require('aws-sdk/clients/s3')
 const playButton = document.querySelector('button');
 const container = document.querySelector('#pads');
 let TracksToAddToCycle = [];
@@ -14,7 +13,14 @@ const files = ["https://9pads-songs.s3.us-east-2.amazonaws.com/1.mp3",
     "https://9pads-songs.s3.us-east-2.amazonaws.com/9.mp3"
 ];
 
-const audios = files.map(file => new Audio(file));
+const audios = files.map(file => {
+    let audio = new Audio();
+    audio.crossOrigin = "anonymous";
+    audio.type = "audio/mpeg";
+    audio.src = file;
+
+    return audio;
+});
 var ctx = new AudioContext();
 const merger = ctx.createChannelMerger(audios.length);
 merger.connect(ctx.destination);
