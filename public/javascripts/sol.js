@@ -1,6 +1,14 @@
-const playButton = document.querySelector('button');
-const container = document.querySelector('#pads');
+const playButton = document.querySelector('#play');
+const recordButton = document.querySelector('#record');
+const container = document.querySelector('#container');
+const pads = document.querySelector('#pads');
 let TracksToAddToCycle = [];
+let recordAudio = new Audio();
+recordAudio.crossOrigin = "anonymous";
+recordAudio.type = "audio/mpeg";
+recordAudio.src = "aaa";
+
+let playRecordingButton = document.createElement("button");
 
 const files = ["https://9pads-songs.s3.us-east-2.amazonaws.com/1.mp3",
     "https://9pads-songs.s3.us-east-2.amazonaws.com/2.mp3",
@@ -43,7 +51,7 @@ let buffered = 'false';
 let load = files.length;
 audios.forEach(audio => {
     audio.addEventListener("canplaythrough", () => {
-        console.log(audio.attributes.src.value);
+
         load--;
         if (load === 0) {
             buffered = 'true';
@@ -85,7 +93,7 @@ playButton.addEventListener('click', function() {
     // play or pause track depending on state
     //play
     if (this.dataset.playing === 'false') {
-        console.log(`playbutton pressed, TracksToAddToCycle=${TracksToAddToCycle}`);
+
         isSomeGainIsOn = 'false';
         for (let i = 0; i < gains.length; i++) {
             if (gains[i].gain.value === 1) {
@@ -130,7 +138,7 @@ playButton.addEventListener('click', function() {
 
 //when the cycle end , and a new cycle is starting
 audios[0].addEventListener('ended', () => {
-    console.log(`ended, TracksToAddToCycle=${TracksToAddToCycle}`);
+
     for (let i = 0; i < TracksToAddToCycle.length; i++) {
         gains[TracksToAddToCycle[i]].gain.value = 1;
     }
@@ -156,7 +164,7 @@ const addTrackToCycle = function(numOfTrack) {
 }
 
 // when a pad is clicked
-container.addEventListener('click', function(e) {
+pads.addEventListener('click', function(e) {
     if (e.target.attributes.state.value === 'false') {
         const trackNumber = e.target.attributes.id.value;
         addTrackToCycle(trackNumber);
@@ -166,4 +174,46 @@ container.addEventListener('click', function(e) {
         gains[parseInt(trackNumber, 10)].gain.value = 0;
         e.target.attributes.state.value = 'false';
     }
+})
+
+let audioBlob = "bbbb";
+let audioUrl = "";
+let mediaRecorder = new MediaRecorder(new MediaStream());
+let audioChunks = [];
+
+recordButton.addEventListener('click', function(e) {
+
+
+    if (this.dataset.state === 'off') {
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                })
+                mediaRecorder.addEventListener("stop", () => {
+                    audioBlob = new Blob(audioChunks);
+                    audioUrl = URL.createObjectURL(audioBlob);
+                    recordAudio.src = audioUrl;
+
+                });
+
+            });
+        this.dataset.state = 'on';
+    } else {
+        mediaRecorder.stop();
+        playRecordingButton.innerHTML = "play recording"; // Insert text
+        container.appendChild(playRecordingButton);
+        this.dataset.state = 'off';
+    }
+
+})
+
+playRecordingButton.addEventListener('click', function(e) {
+    console.log('recordAudio');
+    console.dir(recordAudio);
+    recordAudio.play();
 })
