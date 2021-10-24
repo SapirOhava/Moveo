@@ -1,3 +1,5 @@
+// written by sapir ohava , 24/10/2021
+
 const playButton = document.querySelector('#play');
 const recordButton = document.querySelector('#record');
 const container = document.querySelector('#container');
@@ -6,8 +8,7 @@ let TracksToAddToCycle = [];
 let recordAudio = new Audio();
 recordAudio.crossOrigin = "anonymous";
 recordAudio.type = "audio/mpeg";
-recordAudio.src = "aaa";
-
+recordAudio.src = "";
 let playRecordingButton = document.createElement("button");
 
 const files = ["https://9pads-songs.s3.us-east-2.amazonaws.com/1.mp3",
@@ -21,6 +22,7 @@ const files = ["https://9pads-songs.s3.us-east-2.amazonaws.com/1.mp3",
     "https://9pads-songs.s3.us-east-2.amazonaws.com/9.mp3"
 ];
 
+//initializes all audios 
 const audios = files.map(file => {
     let audio = new Audio();
     audio.crossOrigin = "anonymous";
@@ -28,10 +30,12 @@ const audios = files.map(file => {
     audio.src = file;
     return audio;
 });
+//create AudioContext (audio wen api)
 var ctx = new AudioContext();
 const merger = ctx.createChannelMerger(audios.length);
 merger.connect(ctx.destination);
 
+//creates all source nodes and gain nodes and connect them to the merger
 const gains = audios.map(audio => {
     var gain = ctx.createGain();
     var source = ctx.createMediaElementSource(audio);
@@ -39,16 +43,21 @@ const gains = audios.map(audio => {
     gain.connect(merger);
     return gain;
 });
+
+//setting all the pads volumes to 0 ( mute) at the start of the execution
 for (let i = 0; i < gains.length; i++) {
     gains[i].gain.value = 0;
 }
-//all gains values are o
+//isSomeGainIsOn is true if at least one pad is on ( unmuted)
 let isSomeGainIsOn = 'false';
 
 // buffers values sais if all audio are downloaded and ready to be played
 let buffered = 'false';
-// num of files are not loaded yet
+//load = the number of files are not loaded yet
 let load = files.length;
+
+//when an audio is loaded update the load var , when all audios are loaded 
+//buffered is true
 audios.forEach(audio => {
     audio.addEventListener("canplaythrough", () => {
 
@@ -82,7 +91,7 @@ audios.forEach(audio => {
 //     }
 // }, 5000);
 
-
+//when the play button is clicked
 playButton.addEventListener('click', function() {
 
     // check if context is in suspended state (autoplay policy)
@@ -176,11 +185,12 @@ pads.addEventListener('click', function(e) {
     }
 })
 
-let audioBlob = "bbbb";
+let audioBlob = "";
 let audioUrl = "";
 let mediaRecorder = new MediaRecorder(new MediaStream());
 let audioChunks = [];
 
+//when the record Button is clicked
 recordButton.addEventListener('click', function(e) {
 
 
@@ -212,6 +222,7 @@ recordButton.addEventListener('click', function(e) {
 
 })
 
+//when the play record button is clicked 
 playRecordingButton.addEventListener('click', function(e) {
     console.log('recordAudio');
     console.dir(recordAudio);
